@@ -21,6 +21,10 @@ import mrcfile
 import starfile
 from scipy.spatial.transform import Rotation as R
 
+#Import xml interpreter JL added 01/24/24
+import xml.etree.ElementTree as ET
+import pathlib
+
 #import tom.py
 import tom
 
@@ -1010,6 +1014,7 @@ class Tabs(TabbedPanel):
 				else:
 					statstat = 1
 				shutil.move(cmmdir + '/coord.cmm', (cmmdir + '/' + tomoName + '/' + endcmm))
+				print(cmmdir + '/' + tomoName + '/' + endcmm)
 			# no coordinates saved
 			else:
 				statstat = 0
@@ -1168,7 +1173,7 @@ class Tabs(TabbedPanel):
 		if os.path.exists(directory) == False:
 			print(directory + ' does not exist. Please save coordinates first.')
 			return
-
+		#THIS IS THE OLD CODE
 		# iterate through each folder in directory
 		for file1 in os.listdir(directory):
 			folder1 = directory + file1
@@ -1177,11 +1182,13 @@ class Tabs(TabbedPanel):
 			if os.path.isdir(folder1) == True:
 				for file in os.listdir(folder1):
 					folder = folder1 + file
-					# iterate through each .cmm file
+					# iterate through each .cmm file (OLD CODE)
 					if os.path.isdir(folder) == True:
 						for filename in os.listdir(folder):
 							if filename.endswith('.cmm'):
 								name = filename.replace('.cmm', '')
+								qpath = folder.split('/')[-2] + '/' + folder.split('/')[-1]
+								qname = qpath + '/' + name
 								with open(folder + '/' + filename) as ftomo:
 									count = 1
 									for line in ftomo:
@@ -1190,7 +1197,9 @@ class Tabs(TabbedPanel):
 											# read star file and extract original x, y, z coordinates
 											star_data = starfile.read(starf)
 											df = pd.DataFrame.from_dict(star_data['particles'])
-											row = df[df['rlnImageName'].str.contains(name)]
+											#old code
+                                            #row = df[df['rlnImageName'].str.contains(name)]
+											row = df[df['rlnImageName'].str.contains(qname)] #JL added 1/24/24 now searches for name + two folders
 											xCor = float(row['rlnCoordinateX'].iloc[0])
 											yCor = float(row['rlnCoordinateY'].iloc[0])
 											zCor = float(row['rlnCoordinateZ'].iloc[0])
@@ -1209,79 +1218,91 @@ class Tabs(TabbedPanel):
 												boxsize.append(float(mrc.header.ny))
 												boxsize.append(float(mrc.header.nz))
 											# find selected x, y, z coordinates from .cmm file
-											xmid = re.search(' x="(.*)" y', line)
-											x_coord = float(xmid.group(1)) / angpix
-											cmmX = round(boxsize[0]/2 - x_coord)
-											ymid = re.search(' y="(.*)" z', line)
-											y_coord = float(ymid.group(1)) / angpix
-											cmmY = round(boxsize[1]/2 - y_coord)
-											zmid = re.search(' z="(.*)" r=', line)
-											z_coord = float(zmid.group(1)) / angpix
-											cmmZ = round(boxsize[2]/2 - z_coord)
+                                            #old code...Removed 1/24/24 by JL
+											#xmid = re.search(' x="(.*)" y', line)
+											#x_coord = float(xmid.group(1)) / angpix
+											#cmmX = round(boxsize[0]/2 - x_coord)
+											#ymid = re.search(' y="(.*)" z', line)
+											#y_coord = float(ymid.group(1)) / angpix
+											#cmmY = round(boxsize[1]/2 - y_coord)
+											#zmid = re.search(' z="(.*)" r=', line)
+											#z_coord = float(zmid.group(1)) / angpix
+											#cmmZ = round(boxsize[2]/2 - z_coord)
 											# calculate final x, y, z coordinates. 
-											finalx = str(round(xCor) - int(cmmX))
-											finaly = str(round(yCor) - int(cmmY))
-											finalz = str(round(zCor) - int(cmmZ))
+                                            
+                                            #JL: find selected x,y,z and ID from .cmm file 
+											tree = ET.parse(name)
+											root = tree.getroot()
+											markers = root.findall(".//marker")
+											for m in markers:
+												cmmX = float(m.attrib.get("x", 0))
+												cmmY = float(m.attrib.get("y", 0))
+												cmmZ = float(m.attrib.get("z", 0))
+												cmmID = float(m.attrib.get("id", 0))
+                                            
+												finalx = str(round(xCor) - int(cmmX))
+												finaly = str(round(yCor) - int(cmmY))
+												finalz = str(round(zCor) - int(cmmZ))
 											# create a folder for each subtomogram
-											subtomoName = row['rlnImageName'].iloc[0]
-											subtomo = subtomoName.replace('_wiener', '')
-											subtomo = subtomo.replace('_gauss', '')
-											subtomo = subtomo.replace('filtered', subtomo.split("/")[-1].split('.')[0])
-											subtomoFolder = '/'.join((direct + subtomo).split('/')[:-1])
-											if os.path.isdir(subtomoFolder) == False:
-												os.makedirs(subtomoFolder)
+												subtomoName = row['rlnImageName'].iloc[0]
+												subtomo = subtomoName.replace('_wiener', '')
+												subtomo = subtomo.replace('_gauss', '')
+												subtomo = subtomo.replace('filtered', subtomo.split("/")[-1].split('.')[0])
+												subtomoFolder = '/'.join((direct + subtomo).split('/')[:-1])
+												if os.path.isdir(subtomoFolder) == False:
+												    os.makedirs(subtomoFolder)
 											# ATB: convert to integers and calculate top left corner of box. Jan 22, 2023
-											xpos=int(finalx)
-											ypos=int(finaly)
-											zpos=int(finalz)
-											x = xpos - boxsize[0]/2
-											y = ypos - boxsize[1]/2
-											z = zpos - boxsize[2]/2
+												xpos=int(finalx)
+												ypos=int(finaly)
+												zpos=int(finalz)
+												x = xpos - boxsize[0]/2
+												y = ypos - boxsize[1]/2
+												z = zpos - boxsize[2]/2
 											# calculate bounds
-											bound = np.zeros(3)
-											bound[0] = z + boxsize[2] - 1
-											bound[1] = y + boxsize[1] - 1
-											bound[2] = x + boxsize[0] - 1
+												bound = np.zeros(3)
+												bound[0] = z + boxsize[2] - 1
+												bound[1] = y + boxsize[1] - 1
+												bound[2] = x + boxsize[0] - 1
 											# rounding
-											bound = np.round(bound).astype(int)
-											z = np.round(z).astype(int)
-											y = np.round(y).astype(int)
-											x = np.round(x).astype(int)
+												bound = np.round(bound).astype(int)
+												z = np.round(z).astype(int)
+												y = np.round(y).astype(int)
+												x = np.round(x).astype(int)
  											# 
 											# ATB: check if subtomogram is within tomogram bounds. Jan 21, 2024
-											if (z>=0 and y>=0 and x>=0 and bound[0]+1<=TomogramSize[0] and bound[1]+1<=TomogramSize[1] and bound[2]+1<=TomogramSize[2]):
+												if (z>=0 and y>=0 and x>=0 and bound[0]+1<=TomogramSize[0] and bound[1]+1<=TomogramSize[1] and bound[2]+1<=TomogramSize[2]):
 												#
 												# cut the tomogram
-												subby = tomogram.data[z:(bound[0]+1), y:(bound[1]+1), x:(bound[2]+1)]
+													subby = tomogram.data[z:(bound[0]+1), y:(bound[1]+1), x:(bound[2]+1)]
 												# invert contrast if selected
-												if self.ids.reextractInvert.active == True:
-													subby = subby * -1
+													if self.ids.reextractInvert.active == True:
+														subby = subby * -1
 												# add new coords to dictionary
-												if name in imgToCmmCor.keys(): #checks duplicate filename
-													imgToCmmCor[name + count*"!"] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz, subtomo]
-													count += 1
-												else:
-													imgToCmmCor[name] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz, subtomo]
+													if name in imgToCmmCor.keys(): #checks duplicate filename
+														imgToCmmCor[name + count*"!"] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz, subtomo]
+														count += 1
+													else:
+														imgToCmmCor[name] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz, subtomo]
 												# create subtomograms
-												if count > 1: #account for duplicates
-													num = str(count - 1)
-													subtomo = subtomo.replace('.mrc', '_' + num + '.mrc')
-													mrcfile.new(direct + subtomo, subby, overwrite=True)
-													with mrcfile.open(direct + subtomo, 'r+') as mrc:
-														mrc.voxel_size = angpix
-												else:
-													subtomo = subtomo.replace('.mrc', '_0.mrc')
-													mrcfile.new(direct + subtomo, subby, overwrite=True)
-													with mrcfile.open(direct + subtomo, 'r+') as mrc:
-														mrc.voxel_size = angpix
+													if count > 1: #account for duplicates
+														num = str(count - 1)
+														subtomo = subtomo.replace('.mrc', '_' + num + '.mrc')
+														mrcfile.new(direct + subtomo, subby, overwrite=True)
+														with mrcfile.open(direct + subtomo, 'r+') as mrc:
+															mrc.voxel_size = angpix
+													else:
+															subtomo = subtomo.replace('.mrc', '_0.mrc')
+															mrcfile.new(direct + subtomo, subby, overwrite=True)
+															with mrcfile.open(direct + subtomo, 'r+') as mrc:
+																mrc.voxel_size = angpix
 												# ATB: print extracted coordinate position. Jan 21, 2024
-												print('Re-extracted subtomogram ' + direct + subtomo + ' at position ',xpos,ypos,zpos)
+													print('Re-extracted subtomogram ' + direct + subtomo + ' at position ',xpos,ypos,zpos)
 												#                                                
 												# create .coords file
-												subName = row['rlnMicrographName'].iloc[0].split('/')[-1].replace('.mrc','')
-												file_opt = open(folder + '/' + subName + '.coords', 'a')
-												file_opt.writelines(str(int(x_coord)) + ' ' + str(int(y_coord)) + ' ' + str(int(z_coord)) + '\n')
-												file_opt.close()
+													subName = row['rlnMicrographName'].iloc[0].split('/')[-1].replace('.mrc','')
+													file_opt = open(folder + '/' + subName + '.coords', 'a')
+													file_opt.writelines(str(int(x_coord)) + ' ' + str(int(y_coord)) + ' ' + str(int(z_coord)) + '\n')
+													file_opt.close()
 		
 		# add new information to intermediate star file
 		star_data = starfile.read(starf)

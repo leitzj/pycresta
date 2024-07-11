@@ -467,7 +467,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Generates a number of reconstruction volumes.\n\nStar file must be specified on master key.\nResults stored in 'plotted' folder.\n\nRef Path: path of the folder containing the masks\nof the classes you'd like to put in.\n\nRef Basename: if the mask name is run_it50_class001.mrc, then the basename is 'run_it50'.\n\n"
+			text: "Generates rotated and translated maps using translation, rotation, and class information in star file.\n\nStar file must be specified in the master key.\nThe rotated and translated maps are stored in 'plotback' folder.\nRef Path: path of the folder containing the maps.\n\nRef Basename: if the map name is run_it50_class001.mrc, then the basename is 'run_it50'.\n For each class, it will look for the number of the class in the filename.\n\n For displaying the results, open the full tomogram and the rotated/translated maps in Chimera. \nIMPORTANT: for proper translations, the Origin of the full tomogram must be 0,0,0. "
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -891,7 +891,7 @@
 									id: tomoFolder
 									on_active: root.updateExtract()
 								Label:
-									text: 'Batch Extraction'
+									text: 'Recursive batch Extraction'
 									color: (0,0,0,1)
 						Label:
 							text: 'Tomogram and Coords File Paths'
@@ -920,7 +920,7 @@
 							size_hint: .3, .6
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						TextInput:
-							text: 'Choose Coords Path'
+							text: 'Choose Coords Path .coords'
 							size_hint: .9, .75
 							font_size: 25
 							halign: 'center'
@@ -938,6 +938,48 @@
 							id: tomocoordbutton
 							text: 'Choose Coords'
 							on_release: root.show_tomocoords()
+							size_hint: .3, .6
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						TextInput:
+							text: 'Choose Vector Start Coords .coordsM (leave blank if not available)'
+							size_hint: .9, .7
+							font_size: 25
+							halign: 'center'
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							id: vectorStart
+							multiline: True
+							readonly: True
+							cursor_blink: False
+							foreground_color: (0,0,.6,1)
+							background_color: (1,1,1,0)
+							cursor_color: (1,1,1,0)
+							selection_color: (1,1,1,0)
+						Button:
+							background_color: 0, 1.2, 2, .5
+							id: vectorStartButton
+							text: 'Choose Start Path'
+							on_release: root.show_startvec()
+							size_hint: .3, .6
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						TextInput:
+							text: 'Choose Vector End (center) Coords .coordsC (leave blank if not available)'
+							size_hint: .9, .7
+							font_size: 25
+							halign: 'center'
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							id: vectorEnd
+							multiline: True
+							readonly: True
+							cursor_blink: False
+							foreground_color: (0,0,.6,1)
+							background_color: (1,1,1,0)
+							cursor_color: (1,1,1,0)
+							selection_color: (1,1,1,0)
+						Button:
+							background_color: 0, 1.2, 2, .5
+							id: vectorEndButton
+							text: 'Choose End Path'
+							on_release: root.show_endvec()
 							size_hint: .3, .6
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						BoxLayout:
@@ -962,91 +1004,7 @@
 							size_hint_y: .2
 					Label:
 						size_hint_y: .025
-				BoxLayout:
-					orientation: 'vertical'
-					Label:
-						size_hint_y: .025
-					BoxLayout:
-						orientation: 'vertical'
-						size_hint_x: .75
-						pos_hint: {'center_x': .5}
-						canvas:
-							Color:
-								rgba: .5, .5, .5, 0.4
-							Rectangle:
-								pos: self.pos
-								size: self.size
-						spacing: 15
-						Label:
-							text: 'Calculate Angles'
-							color: (0,0,0,1)
-							font_size: 35
-							pos_hint: {'center_x': .12}
-							size_hint_y: .5
-							bold: True
-						Button:
-							text: 'information'
-							background_color: 0, 1.2, 2, .5
-							on_release: Factory.CalcAnglesInfo().open()
-							size_hint: .15, .45
-							pos_hint: {'center_x': .5, 'center_y': .5}	
-						Label:
-							text: 'Vector Start and End Points'
-							bold: True
-							color: (0,0,0,1)
-							font: 30
-							size_hint_y: .6
-						TextInput:
-							text: 'Choose Vector Start Coords'
-							size_hint: .9, .7
-							font_size: 25
-							halign: 'center'
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							id: vectorStart
-							multiline: True
-							readonly: True
-							cursor_blink: False
-							foreground_color: (0,0,.6,1)
-							background_color: (1,1,1,0)
-							cursor_color: (1,1,1,0)
-							selection_color: (1,1,1,0)
-						Button:
-							background_color: 0, 1.2, 2, .5
-							text: 'Choose Start Path'
-							on_release: root.show_startvec()
-							size_hint: .3, .6
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						TextInput:
-							text: 'Choose Vector End Coords'
-							size_hint: .9, .7
-							font_size: 25
-							halign: 'center'
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							id: vectorEnd
-							multiline: True
-							readonly: True
-							cursor_blink: False
-							foreground_color: (0,0,.6,1)
-							background_color: (1,1,1,0)
-							cursor_color: (1,1,1,0)
-							selection_color: (1,1,1,0)
-						Button:
-							background_color: 0, 1.2, 2, .5
-							text: 'Choose End Path'
-							on_release: root.show_endvec()
-							size_hint: .3, .6
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						Button:
-							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Calculate Angles'
-							on_release: root.calculateAngles()
-							size_hint_x: .4
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						Label:
-							text: ' '
-							size_hint_y: .2
-					Label:
-						size_hint_y: .1
+
 
 	TabbedPanelItem:
 		text: 'Re-Extraction'

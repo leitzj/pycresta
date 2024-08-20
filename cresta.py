@@ -1402,7 +1402,7 @@ class Tabs(TabbedPanel):
 							cmroot = tree.getroot()
 
 							# get boxsize from subtomogram
-							# boxsize = [] this isn't working (JL 8/20/2024)
+							boxsize = [] #this isn't working (JL 8/20/2024)
 							# get boxsize from master key [NEED TO MODIFY THIS TO ADD A TEXT BOX THAT ALLOWS THE EXTRACTION TO BE PERFORMED WITH A DEFINED BOXSIZE WITHIN THIS TAB, PREFILLED WITH MASTERKEY VALUE]
 							boxsize = float(self.ids.newboxsize.text)
 							boxsize = [boxsize, boxsize, boxsize]
@@ -1410,9 +1410,9 @@ class Tabs(TabbedPanel):
 							pixelsize = []
 							with counter_lock:
 								with mrcfile.open(direct + imgName, 'r+', permissive=True) as mrc:
-									boxsize.append(float(mrc.header.nx))
-									boxsize.append(float(mrc.header.ny))
-									boxsize.append(float(mrc.header.nz))
+									#boxsize.append(float(mrc.header.nx))#this isn't working (JL 8/20/2024)
+									#boxsize.append(float(mrc.header.ny))#this isn't working (JL 8/20/2024)
+									#boxsize.append(float(mrc.header.nz))#this isn't working (JL 8/20/2024)
 									pixelsize.append(round(float(mrc.voxel_size.x), 2))
 									pixelsize.append(round(float(mrc.voxel_size.y), 2))
 									pixelsize.append(round(float(mrc.voxel_size.z), 2))

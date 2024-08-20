@@ -416,7 +416,7 @@ class Tabs(TabbedPanel):
 		except IndexError:
 			print('Enter a project directory and name')
 
-	# load existing project information
+	# load existing project information from a project file
 	def pulldata(self):
 		try:
 			self.ids['sigma'] = weakref.ref(Tabs.sigma)
@@ -534,7 +534,7 @@ class Tabs(TabbedPanel):
 			text = Label(text="Please select a filter")
 			self.ids.gaussian_row.add_widget(text)
 	
-	# tomogram extraction
+	# tomogram extraction. Here a tomogram may be extracted from a text file containing 3 column coordinates.  Additional files containing other points may optionally be used to generate rotation vectors. Files need to match in length.
 	def extract(self):
 		# Recursive Batch Extraction
 		if self.ids.tomoFolder.active:
@@ -1290,8 +1290,8 @@ class Tabs(TabbedPanel):
 		self.ids.notesave.text = 'Saved'
 		print('Saved to ' + direct + file_path)
 		return
-
-	# re-extraction from picked coordinates
+# THIS IS THE SUB-EXTRACTION/RE-EXTRACTION PORTION
+	# sub/re-extraction from picked coordinates
 	def reextraction(self):
 		# initialize variables
 		starf = self.ids.mainstarfilt.text
@@ -1402,7 +1402,10 @@ class Tabs(TabbedPanel):
 							cmroot = tree.getroot()
 
 							# get boxsize from subtomogram
-							boxsize = []
+							# boxsize = [] this isn't working (JL 8/20/2024)
+							# get boxsize from master key [NEED TO MODIFY THIS TO ADD A TEXT BOX THAT ALLOWS THE EXTRACTION TO BE PERFORMED WITH A DEFINED BOXSIZE WITHIN THIS TAB, PREFILLED WITH MASTERKEY VALUE]
+							boxsize = float(self.ids.newboxsize.text)
+							boxsize = [boxsize, boxsize, boxsize]
 							## fix pixel size grabbing from header ##
 							pixelsize = []
 							with counter_lock:
@@ -1414,7 +1417,7 @@ class Tabs(TabbedPanel):
 									pixelsize.append(round(float(mrc.voxel_size.y), 2))
 									pixelsize.append(round(float(mrc.voxel_size.z), 2))
 
-							# temporary fix for pixel size
+							# temporary fix for pixel size (CURRENTLY PXSIZE IS NOT CORRECTLY WRITTEN TO MRC JL 8/20/2024)
 							pixelsize = [angpix, angpix, angpix]
 
 							# iterate through each set of coordinates in the cmm file
@@ -1431,7 +1434,7 @@ class Tabs(TabbedPanel):
 								cms = (np.array(boxsize)/2 - cms) / pixelsize[0]
 
 								# for debugging
-								print(f'pixelsize: {pixelsize[0]}')
+								print(f'boxsize: {boxsize[0]}')
 
 								# calculate the new shift
 								new_shift = [round(e) - int(cms[c]) for c,e in enumerate(opXYZ)]
@@ -1519,7 +1522,7 @@ class Tabs(TabbedPanel):
 											print(f"Tomogram {tomogram} was not found — skipping re-extraction of {subtomo}")
 											return
 									
-									# check if subtomogram is within tomogram bounds
+									# check if subtomogram is within tomogram bounds. ADDED ERROR MESSAGE IF SKIPPED JL 8/20/20204
 									if (z>=0 and y>=0 and x>=0 and bound[0] + 1 <= TomogramSize[0] and bound[1] + 1 <= TomogramSize[1] and bound[2] + 1 <=TomogramSize[2]):
 										with counter_lock:
 											# cut the tomogram
@@ -1531,6 +1534,8 @@ class Tabs(TabbedPanel):
 											mrcfile.new(output_file, subby, overwrite=True)
 											with mrcfile.open(output_file, 'r+', permissive=True) as mrc:
 												mrc.voxel_size = pixelsize[0]
+									else:
+										print ('Extraction with specified box size exceeds tomogram borders. Not extracted: ' + name + ' at center position ', xposarray[i],yposarray[i],zposarray[i])
 
 								# add the row to the new dataframe
 								with counter_lock:
@@ -1738,7 +1743,8 @@ class Tabs(TabbedPanel):
 		zoom = float(self.ids.zoomrange.text)
 		tom.ccc_loop(star, volume, cccthresh, boxsize, zoom, wedge)
 		return
-
+		
+## THIS IS THE ROTATION TAB CODE
 	# subtomogram rotation function
 	def rotate_subtomos(self, listName, dir, pxsz, boxsize, shifton, ownAngs):
 		boxsize = [boxsize, boxsize, boxsize]
@@ -1849,6 +1855,7 @@ class Tabs(TabbedPanel):
 	# used to store a subtomogram's accepted/rejected status
 	indexToVal = {}
 
+##THIS IS THE COORDINATE PICKER CODE IN THE SUB-EXTRACTION TAB
 	# visualize subtomograms
 	def visualize(self):
 		# view current subtomogram

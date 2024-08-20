@@ -508,7 +508,7 @@
 	size_hint: 1, 1
 	pos_hint: {'center_x': .5, 'center_y': .5}
 	do_default_tab: False
-
+#Master key setup
 	TabbedPanelItem:
 		text: 'Master Key'
 		BoxLayout:
@@ -532,16 +532,19 @@
 					text: 'Px size (A)'
 				Label:
 					text: 'Threads/CPU Count'
+				#This is the boxsize input (ID = px1)
 				TextInput:
 					id: px1
 					input_filter: 'float'
 					text: '256'
 					multiline: False
+				#Pixelsize input (ID = A1)
 				TextInput:
 					id: A1
 					input_filter: 'float'
 					text: '2.62'
 					multiline: False
+				#Multithreading input (ID = CPU)
 				TextInput:
 					id: CPU
 					input_filter: 'int'
@@ -875,7 +878,7 @@
 							background_color: 0.2, 0.6, 0.2, .55
 						Label:
 							size_hint_y: .1
-
+#Extraction gui
 	TabbedPanelItem:
 		text: 'Extraction'
 		BoxLayout:
@@ -1082,7 +1085,7 @@
 					Label:
 						size_hint_y: .025
 
-
+#Sub-extration/re-extration gui.
 	TabbedPanelItem:
 		text: 'Sub-Extraction'
 		BoxLayout:
@@ -1306,6 +1309,33 @@
 						id: reextractStar
 					Label:
 						text: 'Star File Only'
+						bold: True
+						color: (0,0,0,1)
+				#JL added 8/20/2024 added checkbox to continue extraction with ID = reextractCont
+				BoxLayout:
+					orientation: 'horizontal'
+					size_hint: .2, .1
+					pos_hint: {'center_x': .475, 'centery_y': .5}
+					CheckBox:
+						state: 'down'
+						id: reextractCont
+					Label:
+						text: 'Continue Extraction'
+						bold: True
+						color: (0,0,0,1)
+				#JL added 8/20/2024 added text box for reextraction boxsize change with ID = newboxsize
+				BoxLayout:
+					orientation: 'horizontal'
+					size_hint: .25, .1
+					pos_hint: {'center_x': .5, 'centery_y': .5}
+					TextInput:
+						id: newboxsize
+						size_hint_x: .2
+						input_filter: 'float'
+						text: '256'
+						multiline: False
+					Label:
+						text: 'Sub-Extraction Boxsize'
 						bold: True
 						color: (0,0,0,1)
 				BoxLayout:

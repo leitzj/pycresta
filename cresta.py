@@ -1403,16 +1403,17 @@ class Tabs(TabbedPanel):
 
 							# get boxsize from subtomogram
 							boxsize = [] #this isn't working (JL 8/20/2024)
+							newbox = []
 							# get boxsize from master key [NEED TO MODIFY THIS TO ADD A TEXT BOX THAT ALLOWS THE EXTRACTION TO BE PERFORMED WITH A DEFINED BOXSIZE WITHIN THIS TAB, PREFILLED WITH MASTERKEY VALUE]
-							boxsize = float(self.ids.newboxsize.text)
-							boxsize = [boxsize, boxsize, boxsize]
+							newbox = float(self.ids.newboxsize.text)
+							newbox = [newbox, newbox, newbox]
 							## fix pixel size grabbing from header ##
 							pixelsize = []
 							with counter_lock:
 								with mrcfile.open(direct + imgName, 'r+', permissive=True) as mrc:
-									#boxsize.append(float(mrc.header.nx))#this isn't working (JL 8/20/2024)
-									#boxsize.append(float(mrc.header.ny))#this isn't working (JL 8/20/2024)
-									#boxsize.append(float(mrc.header.nz))#this isn't working (JL 8/20/2024)
+									boxsize.append(float(mrc.header.nx))#this isn't working (JL 8/20/2024)
+									boxsize.append(float(mrc.header.ny))#this isn't working (JL 8/20/2024)
+									boxsize.append(float(mrc.header.nz))#this isn't working (JL 8/20/2024)
 									pixelsize.append(round(float(mrc.voxel_size.x), 2))
 									pixelsize.append(round(float(mrc.voxel_size.y), 2))
 									pixelsize.append(round(float(mrc.voxel_size.z), 2))
@@ -1448,9 +1449,9 @@ class Tabs(TabbedPanel):
 								z = zpos - boxsize[2]/2
 								# calculate bounds
 								bound = np.zeros(3)
-								bound[0] = z + boxsize[2] - 1
-								bound[1] = y + boxsize[1] - 1
-								bound[2] = x + boxsize[0] - 1
+								bound[0] = z + newbox[2] - 1
+								bound[1] = y + newbox[1] - 1
+								bound[2] = x + newbox[0] - 1
 								# rounding
 								bound = np.round(bound).astype(int)
 								z = np.round(z).astype(int)

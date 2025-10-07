@@ -1660,6 +1660,7 @@ class Tabs(TabbedPanel):
 
 		return
 	
+	#CSV file browser
 	def browse_csv_for_masks(self):
 		content = LoadDialog(load=self.load_csv_for_masks, cancel=self.dismiss_popup)
 		#Filter to show only CSV files
